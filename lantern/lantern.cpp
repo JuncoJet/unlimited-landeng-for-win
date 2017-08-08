@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 HMODULE hMod;
 int *pHmod;
@@ -11,13 +12,14 @@ char msg[]="Patched by JuncoJet";
 char app[]="PATCH";
 char file[]="lantern.ini";
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+enum def{IDWIDTH=8,BUFFSIZE=2048};
 
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
-	char *cc=(char*)malloc(2048);
+	char *cc=(char*)malloc(BUFFSIZE);
 	int method=GetPrivateProfileInt(app,"METHOD",3,file);
 	int start=GetPrivateProfileInt(app,"STARTWAIT",3,file);
 	int reset=GetPrivateProfileInt(app,"INTERVAL",480,file);
-	GetPrivateProfileString(app,"PATTERN",c,cc,sizeof cc,file);
+	GetPrivateProfileString(app,"PATTERN",c,cc,BUFFSIZE,file);
 	if(!pHmod)
 		Sleep(1000*start);
 	while(1){
@@ -28,38 +30,36 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 			case 0:
 			case 3:
 				srand(GetTickCount());
-				for(int i=0;i<4;i++){
+				for(int i=0;i<IDWIDTH;i++){
 					pChar[i]=cc[rand()%strlen(cc)];
 				}
 				break;
 			case 4:
 				srand(GetTickCount());
-				for(int i=0;i<4;i++){
+				for(int i=0;i<IDWIDTH;i++){
 					pChar[i]=rand()%255+1;
 				}
 				break;
 			case 5:
 				srand(GetTickCount());
-				pHmod[0]=rand()%-1;
-				for(int i=0;i<4;i++){
+				((uint64_t*)pHmod)[0]=rand()%-1;
+				for(int i=0;i<IDWIDTH;i++){
 					if(!pChar[i])
 						pChar[i]++;
 				}
 				break;
 			case 2:
-				pHmod[0]+=GetTickCount();
-				for(int i=0;i<4;i++){
-					while(!pChar[i]){
+				((uint64_t*)pHmod)[0]+=GetTickCount();
+				for(int i=0;i<IDWIDTH;i++){
+					if(!pChar[i])
 						pChar[i]++;
-					}
 				}
 				break;
 			case 1:
-				pHmod[0]++;
-				for(int i=0;i<4;i++){
-					while(pChar[i]==0){
+				((uint64_t*)pHmod)[0]++;
+				for(int i=0;i<IDWIDTH;i++){
+					if(!pChar[i])
 						pChar[i]++;
-					}
 				}
 				break;
 		}
