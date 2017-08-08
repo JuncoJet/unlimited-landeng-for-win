@@ -8,4 +8,4 @@
 Download
 -
 - 原版 [lantern-for-win](https://raw.githubusercontent.com/JuncoJet/lantern-binaries/master/lantern-installer-preview.exe) 下载
-- 最新编译版 [unlimited-lantern](https://github.com/JuncoJet/unlimited-landeng-for-win/raw/master/Release/lantern.rar) 下载
+- 最新编译版 [unlimited-lantern](https://github.com/JuncoJet/unlimited-landeng-for-win/raw/master/Release/lantern.zip) 下载
