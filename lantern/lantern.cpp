@@ -23,8 +23,8 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	if(!pHmod)
 		Sleep(1000*start);
 	while(1){
-		pHmod=(int*)((int)hMod+0x00EAD00C);
-		pHmod=(int*)(*(int*)(*pHmod+0x338));
+		pHmod=(int*)((int)hMod+0x00F9E6E8);
+		pHmod=(int*)(*(int*)(*pHmod+0x240));
 		char *pChar=(char*)pHmod;
 		switch(method){
 			case 0:
