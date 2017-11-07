@@ -11,21 +11,69 @@ int *pHmod;
 char msg[]="Patched by JuncoJet";
 char app[]="PATCH";
 char file[]="lantern.ini";
+char *filepath;
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-enum def{IDWIDTH=8,BUFFSIZE=2048};
+char *v[]={"3.7.6","4.3.2","4.4.0"};
+enum def{IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
 
+void dbg(char *y,int x){
+	char s[255];
+	sprintf(s,"%s %d",y,x);
+	OutputDebugString(s);
+}
+void dbg(char *s){
+	OutputDebugString(s);
+}
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
+	char ver[VERSIZE];
+	filepath=(char*)malloc(MAX_PATH);
+	GetModuleFileName(hMod,filepath,MAX_PATH);
+	for(int i=lstrlen(filepath);i>0;i--){
+		if(filepath[i]=='\\'){
+			filepath[i+1]='\0';
+			strcat(filepath,file);
+			break;
+		}
+	}
+	GetPrivateProfileString(app,"VERSION",v[VSIZE-1],ver,VERSIZE,filepath);
+	if(!strlen(ver)){
+		return 0;//配置文件中没有版本号退出线程
+	}
 	char *cc=(char*)malloc(BUFFSIZE);
-	int method=GetPrivateProfileInt(app,"METHOD",3,file);
-	int start=GetPrivateProfileInt(app,"STARTWAIT",3,file);
-	int reset=GetPrivateProfileInt(app,"INTERVAL",480,file);
-	GetPrivateProfileString(app,"PATTERN",c,cc,BUFFSIZE,file);
+	int method=GetPrivateProfileInt(app,"METHOD",3,filepath);
+	int start=GetPrivateProfileInt(app,"STARTWAIT",3,filepath);
+	int reset=GetPrivateProfileInt(app,"INTERVAL",480,filepath);
+	GetPrivateProfileString(app,"PATTERN",c,cc,BUFFSIZE,filepath);
 	if(!pHmod)
 		Sleep(1000*start);
+	int r=-1;
 	while(1){
-		pHmod=(int*)((int)hMod+0x00F9E6E8);
-		pHmod=(int*)(*(int*)(*pHmod+0x240));
-		char *pChar=(char*)pHmod;
+		for(int i=0;i<VSIZE;i++){
+			if(!strcmp(v[i],ver)){
+				r=i;
+				break;
+			}
+		}
+		if(r<=-1)
+			return 0;//找不到适合的版本号退出线程
+		switch(r){
+			case 0:
+				//version 3.7.6
+				pHmod=(int*)((int)hMod+0x00EAD00C);
+				pHmod=(int*)(*(int*)(*pHmod+0x338));
+				break;
+			case 1:
+				//version 4.3.2
+				pHmod=(int*)((int)hMod+0x00F9E6E8);
+				pHmod=(int*)(*(int*)(*pHmod+0x240));
+				break;
+			case 2:
+				//version 4.4.0
+				pHmod=(int*)((int)hMod+0x00FB46C4);
+				pHmod=(int*)(*(int*)(*pHmod+0x240));
+				break;
+		}
+		char *pChar=(char*)pHmod;//通用指针
 		switch(method){
 			case 0:
 			case 3:
