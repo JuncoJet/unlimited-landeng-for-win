@@ -11,7 +11,7 @@ int *pHmod;
 char msg[]="Patched by JuncoJet";
 char app[]="PATCH";
 char file[]="lantern.ini";
-char *filepath;
+char filepath[MAX_PATH];
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 char *v[]={"3.7.6","4.3.2","4.4.0"};
 enum def{IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
@@ -26,7 +26,6 @@ void dbg(char *s){
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	char ver[VERSIZE];
-	filepath=(char*)malloc(MAX_PATH);
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=lstrlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
