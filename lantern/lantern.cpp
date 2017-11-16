@@ -27,7 +27,7 @@ void dbg(char *s){
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	char ver[VERSIZE];
 	GetModuleFileName(hMod,filepath,MAX_PATH);
-	for(int i=lstrlen(filepath);i>0;i--){
+	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
 			filepath[i+1]='\0';
 			strcat(filepath,file);
@@ -70,6 +70,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				//version 4.4.0
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
+				pHmod[2]++;
 				break;
 		}
 		char *pChar=(char*)pHmod;//Õ®”√÷∏’Î
