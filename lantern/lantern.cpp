@@ -26,6 +26,9 @@ void dbg(char *s){
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	char ver[VERSIZE];
+	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
+	if(!enable)
+		return 0;
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
