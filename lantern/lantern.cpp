@@ -14,7 +14,8 @@ char file[]="lantern.ini";
 char filepath[MAX_PATH];
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 char *v[]={"3.7.6","4.3.2","4.4.0"};
-enum def{IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
+enum {IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
+enum {PNONE,PALL,PDEV,PUSR};
 
 void dbg(char *y,int x){
 	char s[255];
@@ -73,46 +74,49 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				//version 4.4.0
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
-				pHmod[2]++;
+				if(enable==PALL||enable==PUSR)
+					pHmod[2]++;
 				break;
 		}
 		char *pChar=(char*)pHmod;//Õ®”√÷∏’Î
-		switch(method){
-			case 0:
-			case 3:
-				srand(GetTickCount());
-				for(int i=0;i<IDWIDTH;i++){
-					pChar[i]=cc[rand()%strlen(cc)];
-				}
-				break;
-			case 4:
-				srand(GetTickCount());
-				for(int i=0;i<IDWIDTH;i++){
-					pChar[i]=rand()%255+1;
-				}
-				break;
-			case 5:
-				srand(GetTickCount());
-				((uint64_t*)pHmod)[0]=rand()%-1;
-				for(int i=0;i<IDWIDTH;i++){
-					if(!pChar[i])
-						pChar[i]++;
-				}
-				break;
-			case 2:
-				((uint64_t*)pHmod)[0]+=GetTickCount();
-				for(int i=0;i<IDWIDTH;i++){
-					if(!pChar[i])
-						pChar[i]++;
-				}
-				break;
-			case 1:
-				((uint64_t*)pHmod)[0]++;
-				for(int i=0;i<IDWIDTH;i++){
-					if(!pChar[i])
-						pChar[i]++;
-				}
-				break;
+		if(enable==PALL||enable==PDEV){
+			switch(method){
+				case 0:
+				case 3:
+					srand(GetTickCount());
+					for(int i=0;i<IDWIDTH;i++){
+						pChar[i]=cc[rand()%strlen(cc)];
+					}
+					break;
+				case 4:
+					srand(GetTickCount());
+					for(int i=0;i<IDWIDTH;i++){
+						pChar[i]=rand()%255+1;
+					}
+					break;
+				case 5:
+					srand(GetTickCount());
+					((uint64_t*)pHmod)[0]=rand()%-1;
+					for(int i=0;i<IDWIDTH;i++){
+						if(!pChar[i])
+							pChar[i]++;
+					}
+					break;
+				case 2:
+					((uint64_t*)pHmod)[0]+=GetTickCount();
+					for(int i=0;i<IDWIDTH;i++){
+						if(!pChar[i])
+							pChar[i]++;
+					}
+					break;
+				case 1:
+					((uint64_t*)pHmod)[0]++;
+					for(int i=0;i<IDWIDTH;i++){
+						if(!pChar[i])
+							pChar[i]++;
+					}
+					break;
+			}
 		}
 		Sleep(1000*reset);
 	}
