@@ -15,7 +15,7 @@ char filepath[MAX_PATH];
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 char *v[]={"3.7.6","4.3.2","4.4.0"};
 enum {IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
-enum {PNONE,PALL,PDEV,PUSR};
+enum {PNONE=0,PALL=-1,PDEV=2,PUSR=4};
 
 void dbg(char *y,int x){
 	char s[255];
@@ -30,6 +30,8 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
 	if(!enable)
 		return 0;
+	else if(enable==1)
+		enable=-1;
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
@@ -74,12 +76,12 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				//version 4.4.0
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
-				if(enable==PALL||enable==PUSR)
+				if(enable&PUSR)
 					pHmod[2]++;
 				break;
 		}
 		char *pChar=(char*)pHmod;//Õ®”√÷∏’Î
-		if(enable==PALL||enable==PDEV){
+		if(enable&PDEV){
 			switch(method){
 				case 0:
 				case 3:
