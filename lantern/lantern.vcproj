@@ -136,6 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="shlwapi.lib"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				ModuleDefinitionFile="lantern.def"
