@@ -27,11 +27,6 @@ void dbg(char *s){
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	char ver[VERSIZE];
-	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
-	if(!enable)
-		return 0;
-	else if(enable==1)
-		enable=-1;
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
@@ -40,6 +35,11 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 			break;
 		}
 	}
+	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
+	if(!enable)
+		return 0;
+	else if(enable==1)
+		enable=-1;
 	GetPrivateProfileString(app,"VERSION",v[VSIZE-1],ver,VERSIZE,filepath);
 	if(!strlen(ver)){
 		return 0;//配置文件中没有版本号退出线程
