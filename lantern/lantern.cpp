@@ -15,11 +15,16 @@ char filepath[MAX_PATH];
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 char *v[]={"3.7.6","4.3.2","4.4.0"};
 enum {IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
-enum {PNONE=0,PALL=-1,PDEV=2,PUSR=4};
+enum {PNONE=0,PALL=-1,PDEV=2,PUSR=4,PDEBUG=8};
 
 void dbg(char *y,int x){
 	char s[255];
 	sprintf(s,"%s %d",y,x);
+	OutputDebugString(s);
+}
+void dbg(char *y,char *x){
+	char s[255];
+	sprintf(s,"%s %s",y,x);
 	OutputDebugString(s);
 }
 void dbg(char *s){
@@ -36,11 +41,15 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 		}
 	}
 	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
+	if(enable&PDEBUG)
+		dbg("ul: enable",enable);
 	if(!enable)
 		return 0;
 	else if(enable==1)
 		enable=-1;
 	GetPrivateProfileString(app,"VERSION",v[VSIZE-1],ver,VERSIZE,filepath);
+	if(enable&PDEBUG)
+		dbg("ul: version",ver);
 	if(!strlen(ver)){
 		return 0;//配置文件中没有版本号退出线程
 	}
@@ -49,6 +58,12 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	int start=GetPrivateProfileInt(app,"STARTWAIT",3,filepath);
 	int reset=GetPrivateProfileInt(app,"INTERVAL",480,filepath);
 	GetPrivateProfileString(app,"PATTERN",c,cc,BUFFSIZE,filepath);
+	if(enable&PDEBUG){
+		dbg("ul: method",method);
+		dbg("ul: start",start);
+		dbg("ul: reset",reset);
+		dbg("ul: pattern",cc);
+	}
 	if(!pHmod)
 		Sleep(1000*start);
 	int r=-1;
@@ -59,6 +74,8 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				break;
 			}
 		}
+		if(enable&PDEBUG)
+			dbg("ul: ver_r",r);
 		if(r<=-1)
 			return 0;//找不到适合的版本号退出线程
 		switch(r){
@@ -76,9 +93,19 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				//version 4.4.0
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
+				if(enable&PDEBUG){
+					char s[255];
+					sprintf(s,"ul:  %x",pHmod);
+					dbg(s);
+				}
 				if(enable&PUSR)
 					pHmod[2]++;
 				break;
+		}
+		if(enable&PDEBUG&&r!=2){
+			char s[255];
+			sprintf(s,"ul:  %x",pHmod);
+			dbg(s);
 		}
 		char *pChar=(char*)pHmod;//通用指针
 		if(enable&PDEV){
