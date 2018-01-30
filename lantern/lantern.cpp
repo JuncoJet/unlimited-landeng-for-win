@@ -33,7 +33,7 @@ LTVER ltvv[]={
 };
 void dbgx(char *x,void *y){
 	char z[200];
-	sprintf(z,"%s 0x%x",x,y);
+	sprintf(z,"%s 0x%08X",x,y);
 	OutputDebugString(z);
 }
 template <class T>
@@ -100,12 +100,18 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 			ltvv[i].newstr=pv;
 			ltvv[i].addr+=(int)hMod;
 			ltvv[i].str=(char*)(ltvv[i].addr);
-			if(enable&PDBG)
-				dbg("ul: ltvv.str",ltvv[i].str);
+			if(enable&PDBG){
+				stringstream inf;
+				inf<<"ltvv["<<i<<"].str "<<ltvv[i].str;
+				dbg(inf.str().data());
+			}
 			SIZE_T s;
 			WriteProcessMemory((HANDLE)-1,(char*)(ltvv[i].addr),ltvv[i].newstr.data(),ltvv[i].newstr.size(),&s);
-			if(enable&PDBG)
-				dbg("ul: ltvv.addr",ltvv[i].addr);
+			if(enable&PDBG){
+				stringstream inf;
+				inf<<"ul: ltvv["<<i<<"].str";
+				dbgx((char*)(inf.str().data()),(void*)ltvv[i].addr);
+			}
 		}
 	if(!pHmod)
 		Sleep(1000*start);
