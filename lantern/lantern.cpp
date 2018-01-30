@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <vector>
+using namespace std;
 
 HMODULE hMod;
 int *pHmod;
@@ -15,20 +20,33 @@ char filepath[MAX_PATH];
 char c[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 char *v[]={"3.7.6","4.3.2","4.4.0"};
 enum {IDWIDTH=8,BUFFSIZE=2048,VERSIZE=10,VSIZE=3};
-enum {PNONE=0,PALL=-1,PDEV=2,PUSR=4,PDBG=8};
-
-void dbg(char *y,int x){
-	char s[255];
-	sprintf(s,"%s %d",y,x);
-	OutputDebugString(s);
+enum {PNONE=0,PALL=-1,PDEV=2,PUSR=4,PDBG=8,PVER=16};
+typedef struct _LTVER{
+	DWORD addr;
+	string str;
+	string newstr;
+}LTVER;
+LTVER ltvv[]={
+	{0x8B6B30,"","4.4.2"},
+	{0x8B9420,"","20171222.161751"},
+	{0x8B9430,"","20171222.161626"},
+};
+void dbgx(char *x,void *y){
+	char z[200];
+	sprintf(z,"%s 0x%x",x,y);
+	OutputDebugString(z);
 }
-void dbg(char *y,char *x){
-	char s[255];
-	sprintf(s,"%s %s",y,x);
-	OutputDebugString(s);
+template <class T>
+void dbg(T x){
+	stringstream z;
+	z<<"ul: "<<x;
+	OutputDebugString(z.str().data());
 }
-void dbg(char *s){
-	OutputDebugString(s);
+template <class I,class T>
+void dbg(I x,T y){
+	stringstream z;
+	z<<x<<" "<<y;
+	OutputDebugString(z.str().data());
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	char ver[VERSIZE];
@@ -49,9 +67,8 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 	GetPrivateProfileString(app,"VERSION",v[VSIZE-1],ver,VERSIZE,filepath);
 	if(enable&PDBG)
 		dbg("ul: version",ver);
-	if(!strlen(ver)){
+	if(!strlen(ver))
 		return 0;//配置文件中没有版本号退出线程
-	}
 	char *cc=(char*)malloc(BUFFSIZE);
 	int method=GetPrivateProfileInt(app,"METHOD",3,filepath);
 	int start=GetPrivateProfileInt(app,"STARTWAIT",3,filepath);
@@ -63,20 +80,36 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 		dbg("ul: reset",reset);
 		dbg("ul: pattern",cc);
 	}
+	int r=-1;
+	for(int i=0;i<VSIZE;i++){
+		if(!strcmp(v[i],ver)){
+			r=i;
+			break;
+		}
+	}
+	if(enable&PDBG)
+		dbg("ul: ver_r",r);
+	if(r<=-1)
+		return 0;//找不到适合的版本号退出线程
+	if(r==2&&enable&PVER)
+		for(int i=0;i<3;i++){
+			char pv[20];
+			stringstream pvn;
+			pvn<<"PV"<<i;
+			GetPrivateProfileString(app,pvn.str().data(),ltvv[i].newstr.data(),pv,20,filepath);
+			ltvv[i].newstr=pv;
+			ltvv[i].addr+=(int)hMod;
+			ltvv[i].str=(char*)(ltvv[i].addr);
+			if(enable&PDBG)
+				dbg("ul: ltvv.str",ltvv[i].str);
+			SIZE_T s;
+			WriteProcessMemory((HANDLE)-1,(char*)(ltvv[i].addr),ltvv[i].newstr.data(),ltvv[i].newstr.size(),&s);
+			if(enable&PDBG)
+				dbg("ul: ltvv.addr",ltvv[i].addr);
+		}
 	if(!pHmod)
 		Sleep(1000*start);
-	int r=-1;
 	while(1){
-		for(int i=0;i<VSIZE;i++){
-			if(!strcmp(v[i],ver)){
-				r=i;
-				break;
-			}
-		}
-		if(enable&PDBG)
-			dbg("ul: ver_r",r);
-		if(r<=-1)
-			return 0;//找不到适合的版本号退出线程
 		switch(r){
 			case 0:
 				//version 3.7.6
@@ -93,9 +126,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
 				if(enable&PDBG){
-					char s[255];
-					sprintf(s,"ul: pHomd %x",pHmod);
-					dbg(s);
+					dbgx("ul: pHomd",pHmod);
 					if(enable&PUSR)
 						dbg("ul: USRID",pHmod[2]);
 				}
@@ -104,18 +135,15 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				break;
 		}
 		if(enable&PDBG&&r!=2){
-			char s[255];
-			sprintf(s,"ul: pHmod %x",pHmod);
-			dbg(s);
+			dbgx("ul: pHmod",pHmod);
 		}
 		char *pChar=(char*)pHmod;//通用指针
 		if(enable&PDEV){
 			if(enable&PDBG){
-				char s[255],x[10];
+				char x[10];
 				memcpy(x,pChar,IDWIDTH);
-				x[8]='\0';
-				sprintf(s,"ul: DEVID %s",x);
-				dbg(s);
+				x[IDWIDTH]='\0';
+				dbg("ul: DEVID",x);
 			}
 			switch(method){
 				case 0:
