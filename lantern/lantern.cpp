@@ -31,11 +31,6 @@ LTVER ltvv[]={
 	{0x8B9420,"","20171222.161751"},
 	{0x8B9430,"","20171222.161626"},
 };
-void dbgx(char *x,void *y){
-	char z[200];
-	sprintf(z,"%s 0x%08X",x,y);
-	OutputDebugString(z);
-}
 template <class T>
 void dbg(T x){
 	stringstream z;
@@ -49,15 +44,21 @@ void dbg(I x,T y){
 	OutputDebugString(z.str().data());
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
-	char ver[VERSIZE];
+	char ver[VERSIZE],ModN[MAX_PATH];
+	int ModT[]={1953390956,778990181};
+	int *pModN=(int*)ModN;
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
+			strcpy(ModN,&filepath[i+1]);
 			filepath[i+1]='\0';
 			strcat(filepath,file);
+			dbg(ModN);
 			break;
 		}
 	}
+	if(pModN[0]!=ModT[0]||pModN[1]!=ModT[1])
+		return 0;
 	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
 	dbg("ul: enable",enable);
 	if(!enable)
@@ -110,7 +111,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 			if(enable&PDBG){
 				stringstream inf;
 				inf<<"ul: ltvv["<<i<<"].str";
-				dbgx((char*)(inf.str().data()),(void*)ltvv[i].addr);
+				dbg(inf.str().data(),(void*)ltvv[i].addr);
 			}
 		}
 	if(!pHmod)
@@ -132,7 +133,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				pHmod=(int*)((int)hMod+0x00FB46C4);
 				pHmod=(int*)(*(int*)(*pHmod+0x240));
 				if(enable&PDBG){
-					dbgx("ul: pHomd",pHmod);
+					dbg("ul: pHomd",(void*)pHmod);
 					if(enable&PUSR)
 						dbg("ul: USRID",pHmod[2]);
 				}
@@ -141,7 +142,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 				break;
 		}
 		if(enable&PDBG&&r!=2){
-			dbgx("ul: pHmod",pHmod);
+			dbg("ul: pHmod",(void*)pHmod);
 		}
 		char *pChar=(char*)pHmod;//Í¨ÓÃÖ¸Õë
 		if(enable&PDEV){
