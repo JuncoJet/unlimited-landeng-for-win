@@ -44,20 +44,21 @@ void dbg(I x,T y){
 	OutputDebugString(z.str().data());
 }
 DWORD  WINAPI ThreadProc(LPVOID lpParam){
-	char ver[VERSIZE],ModN[MAX_PATH];
-	int ModT[]={1953390956,778990181};
-	int *pModN=(int*)ModN;
+	char ver[VERSIZE],nmod[MAX_PATH],*pnmod=nmod;
+	int tmod=1458702212,hmod=0;
 	GetModuleFileName(hMod,filepath,MAX_PATH);
 	for(int i=strlen(filepath);i>0;i--){
 		if(filepath[i]=='\\'){
-			strcpy(ModN,&filepath[i+1]);
+			strcpy(nmod,&filepath[i+1]);
 			filepath[i+1]='\0';
 			strcat(filepath,file);
-			dbg(ModN);
+			dbg(nmod);
 			break;
 		}
 	}
-	if(pModN[0]!=ModT[0]||pModN[1]!=ModT[1])
+	while(*pnmod)
+		hmod=hmod*33+*pnmod++;
+	if(hmod!=tmod)
 		return 0;
 	int enable=GetPrivateProfileInt(app,"ENABLE",1,filepath);
 	dbg("ul: enable",enable);
@@ -110,7 +111,7 @@ DWORD  WINAPI ThreadProc(LPVOID lpParam){
 			WriteProcessMemory((HANDLE)-1,(char*)(ltvv[i].addr),ltvv[i].newstr.data(),ltvv[i].newstr.size(),&s);
 			if(enable&PDBG){
 				stringstream inf;
-				inf<<"ul: ltvv["<<i<<"].str";
+				inf<<"ul: ltvv["<<i<<"].addr";
 				dbg(inf.str().data(),(void*)ltvv[i].addr);
 			}
 		}
